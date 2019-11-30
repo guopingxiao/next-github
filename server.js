@@ -3,10 +3,11 @@ const Router = require('koa-router')
 const next = require('next')
 const session = require('koa-session')
 const Redis = require('ioredis')
-//auth授权
-const auth = require('./server/auth');
 
-const RedisSessionStore = require('./server/session-store');
+//auth授权
+const authFilter = require('./server/authFilter')
+
+const RedisSessionStore = require('./server/session-store')
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
@@ -19,17 +20,22 @@ const redis = new Redis();
 app.prepare().then(() => {
     const server = new Koa();
     const router = new Router();
-    server.keys = ['YAN develop github App'];
+
+    // 这个是用来给session加密的
+    server.keys = ['xiaoguoping develop github App'];
+
+
     const SESSION_CONFIG = {
-        key: 'Yan',
+        key: 'xiaoguoping', // 设置到客户端cookie中的key
         // maxAge:10*1000,//过期时间
-        store: new RedisSessionStore(redis)
+        store: new RedisSessionStore(redis) // 用来存取session的一个连接功能；
     };
     server.use(session(SESSION_CONFIG, server))
     //处理github oAuth登录
-    auth(server);
+    authFilter(server);
 
 
+    // 打印session
     server.use(async (ctx,next)=>{
         console.log('session is:',ctx.session)
         await next();
@@ -37,26 +43,24 @@ app.prepare().then(() => {
 
     router.get('/a/:id', async (ctx) => {
         const id = ctx.params.id;
+
         await handle(ctx.req, ctx.res, {
             path: '/a',
             query: {
                 id
             },
         });
-        ctx.respond = false;
+        ctx.respond = false; // 不在使用koa ctx.body, 直接handle 返回了ctx.body内容
     });
     router.get('/delete/user', async (ctx) => {
         ctx.session = null;
         ctx.body = 'set session success';
     });
 
-    router.get('/set/user', async (ctx) => {
-        ctx.session.user = {
-            name: 'Yan',
-            age: 20
-        };
-        ctx.body = 'set session success';
-    });
+    
+    
+
+    
 
     server.use(router.routes());
 

@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next"
   },
-  "author": "",
+  "author": "xiaoguoping",
   "license": "ISC",
   "dependencies": {
     "@zeit/next-css": "^1.0.1",

@@ -3,6 +3,8 @@ import Router from 'next/router'
 import {connect} from 'react-redux';
 import {add} from '../store/store';
 import getConfig from 'next/config';
+import { useEffect, Fragment } from 'react';
+import axios from 'axios';
 
 const {publicRuntimeConfig} = getConfig();
 
@@ -27,18 +29,26 @@ events.forEach(event=>{
 })
 const Index=({count,username,add,rename})=>{
     console.log(publicRuntimeConfig)
-    return <>
+
+    useEffect(()=>{
+        axios.get('/api/user/info').then(res=>{
+            console.log(res)
+        })
+    }, [])
+    
+    return <Fragment>
         <p><input value={username} onChange={e=>rename(e.target.value)}/></p>
         <div><button onClick={e=>add(count+1)}>add count</button></div>
         <p><span>count:{count}</span>;
             <span>userName:{username}</span>
         </p>
         <div>
-            <a href={publicRuntimeConfig.OAUTH_URL}>登录</a>
+            <a href={publicRuntimeConfig.AUTH_CODE_URL}>登录</a>
         </div>
 
-    </>
+    </Fragment>
 }
+
 Index.getInitialProps= async ({reduxStore})=>{
     reduxStore.dispatch(add(3));
     return {}
@@ -49,9 +59,10 @@ export default connect(function mapStateToProps(state) {
         username:state.user.name
     }
 },
-    function mapDispatchToProps(dispatch) {
-        return {
-            add:num=>dispatch({type:'ADD',num}),
-            rename:name=>dispatch({type:'UPDATE_USERNAME',name})
-        }
-    })(Index)
+    
+function mapDispatchToProps(dispatch) {
+    return {
+        add:num=>dispatch({type:'ADD',num}),
+        rename:name=>dispatch({type:'UPDATE_USERNAME',name})
+    }
+})(Index)

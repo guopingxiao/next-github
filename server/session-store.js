@@ -31,7 +31,7 @@ class RedisSessionStore {
      * 存储session数据到redis
      * @param sid
      * @param sess
-     * @param ttl
+     * @param ttl 过期时间
      * @returns {Promise<void>}
      */
     async set(sid,sess,ttl){

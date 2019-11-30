@@ -3,6 +3,7 @@
 .ipr
 .iws
 .next/
+dump.*
 *~
 ~*
 *.diff
