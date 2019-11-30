@@ -1,0 +1,1 @@
+export default (Children)=><span>lazy component</span>

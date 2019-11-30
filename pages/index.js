@@ -1,86 +1,57 @@
+import Link from 'next/link';
+import Router from 'next/router'
+import {connect} from 'react-redux';
+import {add} from '../store/store';
+import getConfig from 'next/config';
 
-import React from 'react'
-import { Button } from 'antd'
-import Nav from '../components/nav'
+const {publicRuntimeConfig} = getConfig();
 
-const Home = () => (
-  <div>
-    <Button>Index</Button>
+//router变化钩子函数
+const  events = [
+    "routeChangeStart",
+    "routerChangeComplete",
+    "routerChangeError",
+    "beforeHistoryChange",
+    "hashChangeStart",
+    "hashChangeComplete"
+];
 
-    <Nav />
+function makeEvent(type){
+    return (...args)=>{
+        console.log(type,...args)
+    }
+}
 
-    <div className="hero">
-      <h1 className="title">Welcome to Next.js!</h1>
-      <p className="description">
-        To get started, edit <code>pages/index.js</code> and save to reload.
-      </p>
+events.forEach(event=>{
+    Router.events.on(event,makeEvent(event))
+})
+const Index=({count,username,add,rename})=>{
+    console.log(publicRuntimeConfig)
+    return <>
+        <p><input value={username} onChange={e=>rename(e.target.value)}/></p>
+        <div><button onClick={e=>add(count+1)}>add count</button></div>
+        <p><span>count:{count}</span>;
+            <span>userName:{username}</span>
+        </p>
+        <div>
+            <a href={publicRuntimeConfig.OAUTH_URL}>登录</a>
+        </div>
 
-      <div className="row">
-        <a href="https://nextjs.org/docs" className="card">
-          <h3>Documentation &rarr;</h3>
-          <p>Learn more about Next.js in the documentation.</p>
-        </a>
-        <a href="https://nextjs.org/learn" className="card">
-          <h3>Next.js Learn &rarr;</h3>
-          <p>Learn about Next.js by following an interactive tutorial!</p>
-        </a>
-        <a
-          href="https://github.com/zeit/next.js/tree/master/examples"
-          className="card"
-        >
-          <h3>Examples &rarr;</h3>
-          <p>Find other example boilerplates on the Next.js GitHub.</p>
-        </a>
-      </div>
-    </div>
-
-    <style jsx>{`
-      .hero {
-        width: 100%;
-        color: #333;
-      }
-      .title {
-        margin: 0;
-        width: 100%;
-        padding-top: 80px;
-        line-height: 1.15;
-        font-size: 48px;
-      }
-      .title,
-      .description {
-        text-align: center;
-      }
-      .row {
-        max-width: 880px;
-        margin: 80px auto 40px;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-      }
-      .card {
-        padding: 18px 18px 24px;
-        width: 220px;
-        text-align: left;
-        text-decoration: none;
-        color: #434343;
-        border: 1px solid #9b9b9b;
-      }
-      .card:hover {
-        border-color: #067df7;
-      }
-      .card h3 {
-        margin: 0;
-        color: #067df7;
-        font-size: 18px;
-      }
-      .card p {
-        margin: 0;
-        padding: 12px 0 0;
-        font-size: 13px;
-        color: #333;
-      }
-    `}</style>
-  </div>
-)
-
-export default Home
+    </>
+}
+Index.getInitialProps= async ({reduxStore})=>{
+    reduxStore.dispatch(add(3));
+    return {}
+}
+export default connect(function mapStateToProps(state) {
+    return {
+        count:state.counter.count,
+        username:state.user.name
+    }
+},
+    function mapDispatchToProps(dispatch) {
+        return {
+            add:num=>dispatch({type:'ADD',num}),
+            rename:name=>dispatch({type:'UPDATE_USERNAME',name})
+        }
+    })(Index)
