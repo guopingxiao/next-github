@@ -4,6 +4,9 @@ const next = require('next')
 const session = require('koa-session')
 const Redis = require('ioredis')
 
+//post请求的数据处理；
+const KoaBody = require('koa-body');
+
 //auth授权
 const authFilter = require('./server/authFilter')
 //git api
@@ -25,7 +28,8 @@ app.prepare().then(() => {
 
     // 这个是用来给session加密的
     server.keys = ['xiaoguoping develop github App'];
-
+    //post请求的数据处理；,ctx的request中可以获取到请求的body
+    server.use(KoaBody());
 
     const SESSION_CONFIG = {
         key: 'xiaoguoping', // 设置到客户端cookie中的key

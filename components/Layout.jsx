@@ -19,7 +19,7 @@ function LayoutWrapper ({children}) {
           {/*render传入的是一个jsx的标签，等同于react.createElement('div')，返回的是一个element类型
           cloneElement：copy一个Element
           */}
-          <Container render={<Comp color="red" style={{fontSize:20}}/>}>{children}</Container>
+          <Container render={<Comp />}>{children}</Container>
       </Content>
       <Footer style={footerSty}>Develop By xiaoguoping@<a href="mailto:765166961@qq.com">765166961@qq.com</a></Footer>
     

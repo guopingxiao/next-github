@@ -66,12 +66,6 @@ class MyApp extends App{
                         this.state.loading ? <PageLoading/> :null
                     }
                     <LayoutWrapper>
-                        <Link href="/">
-                            <a>index</a>
-                        </Link>
-                        <Link href="/detail">
-                            <a>detail</a>
-                        </Link>
                         <Component {...pageProps} />
                     </LayoutWrapper>
                 </Provider>
