@@ -1,21 +1,28 @@
-import {Icon} from 'antd';
+import {Icon,Tabs} from 'antd';
 import getConfig from 'next/config';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
+import Router,{ withRouter } from 'next/router';
 
 //仓库概述组件
 import Repo from '../components/Repo';
 
 const {publicRuntimeConfig} = getConfig();
 
-function Index({ userRepos, userStarredRepos, user }) {
+function Index({ userRepos, userStarredRepos, user, router }) {
      // console.log(userStarredRepos,isLogin)
-     if(!user || !user.id){
-         return (
-             <div className="root">
-                 <p>您还未登录哦！</p>
-                 <a className="login-btn" href={publicRuntimeConfig.OAUTH_URL}>点击登录</a>
-                 <style jsx>
-                     {`
+    const tabsKey = router.query.key || '1';
+
+    const handleTabsEvent = (tabsKey)=>{
+         Router.push(`/?key=${tabsKey}`)
+    };
+    
+    if (!user || !user.id) {
+        return (
+            <div className="root">
+                <p>您还未登录哦！</p>
+                <a className="login-btn" href={publicRuntimeConfig.OAUTH_URL}>点击登录</a>
+                <style jsx>
+                    {`
                         .root{
                             height:400px;
                             display:flex;
@@ -43,11 +50,11 @@ function Index({ userRepos, userStarredRepos, user }) {
                             border-radius: 4px;
                         }
                      `}
-                 </style>
-             </div>
-         )
-     }
-     return(
+                </style>
+            </div>
+        )
+    } else { 
+        return(
          <div className="root">
              <div className="user-info">
                  <img src={user.avatar_url} alt="user avatar" className="avatar"/>
@@ -60,9 +67,18 @@ function Index({ userRepos, userStarredRepos, user }) {
                  </p>
              </div>
              <div className={"user-repos"}>
-                 {
-                     userRepos.map((item, ind) => <Repo repo={item} key={ind}/>)
-                 }
+                <Tabs defaultActiveKey={tabsKey} animated={false} onChange={handleTabsEvent}>
+                     <Tabs.TabPane tab="我的仓库" key="1">
+                         {
+                             userRepos.map((item, ind) => <Repo repo={item} key={ind}/>)
+                         }
+                     </Tabs.TabPane>
+                     <Tabs.TabPane tab="我关注的仓库" key="2">
+                         {
+                             userStarredRepos.map((item, ind) => <Repo repo={item} key={ind}/>)
+                         }
+                     </Tabs.TabPane>
+                 </Tabs>
              </div>
              <style jsx>
                  {`
@@ -103,6 +119,8 @@ function Index({ userRepos, userStarredRepos, user }) {
              </style>
          </div>
      )
+    }
+     
  }
      
  //getInitialProps页面进入的时候，调用
@@ -133,4 +151,4 @@ export default connect(
             user:state.user
         }
     }
-)(Index)
+)(withRouter(Index))
