@@ -1,12 +1,21 @@
 import {Icon,Tabs} from 'antd';
 import getConfig from 'next/config';
 import { connect } from 'react-redux';
-import Router,{ withRouter } from 'next/router';
+import Router, { withRouter } from 'next/router';
+import { useEffect } from 'react';
+import LRU from 'lru-cache';//缓存
+const api = require('../lib/api');
+import Repo from '../components/Repo';//仓库组件
 
-//仓库概述组件
-import Repo from '../components/Repo';
+const { publicRuntimeConfig } = getConfig();
+const isServer = typeof window==='undefined';//判断是否是服务端渲染
+let cachedUserRepos,cachedUserStarredRepos;//缓存数据
 
-const {publicRuntimeConfig} = getConfig();
+
+const cache = new LRU({
+    maxAge:1000*10,//缓存10分钟
+})
+
 
 function Index({ userRepos, userStarredRepos, user, router }) {
      // console.log(userStarredRepos,isLogin)
@@ -15,6 +24,22 @@ function Index({ userRepos, userStarredRepos, user, router }) {
     const handleTabsEvent = (tabsKey)=>{
          Router.push(`/?key=${tabsKey}`)
     };
+
+    useEffect(()=>{
+         if(!isServer){ // 服务端缓存不能这么存，不然每个用户读取的缓存是上一个用户的数据，有问题。客户端自己缓存数据；
+             cachedUserRepos = userRepos;
+             cachedUserStarredRepos = userStarredRepos;
+         }
+    }, [])
+    
+    // cachedUserRepos = userRepos;
+    // cachedUserStarredRepos = userStarredRepos;
+    if(userRepos){
+        cache.set('userRepos',userRepos);
+    }
+    if(userStarredRepos){
+        cache.set('userStarredRepos',userStarredRepos);
+    }
     
     if (!user || !user.id) {
         return (
@@ -70,12 +95,12 @@ function Index({ userRepos, userStarredRepos, user, router }) {
                 <Tabs defaultActiveKey={tabsKey} animated={false} onChange={handleTabsEvent}>
                      <Tabs.TabPane tab="我的仓库" key="1">
                          {
-                             userRepos.map((item, ind) => <Repo repo={item} key={ind}/>)
+                            userRepos.map((item, ind) => <Repo repo={item} key={item.id}/>)
                          }
                      </Tabs.TabPane>
                      <Tabs.TabPane tab="我关注的仓库" key="2">
                          {
-                             userStarredRepos.map((item, ind) => <Repo repo={item} key={ind}/>)
+                            userStarredRepos.map((item, ind) => <Repo repo={item} key={item.id}/>)
                          }
                      </Tabs.TabPane>
                  </Tabs>
@@ -133,22 +158,42 @@ function Index({ userRepos, userStarredRepos, user, router }) {
              isLogin:false
          }
      }
-     //用户所有的仓库
-     const userRepos = await api.request({url:`/user/repos`},ctx.req,ctx.res);
-     //自己创建的仓库
-     const userStarredRepos = await api.request({url:`/user/starred`},ctx.req,ctx.res);
+
+     //不是服务端渲染的时候，进行存储，因为node环境下，会共享全局变量。
+     if(!isServer){
+         //如果有暂存的数据则
+        //  if(cachedUserRepos&& cachedUserStarredRepos){
+        //      return{
+        //          isLogin:true,
+        //          userRepos:cachedUserRepos,
+        //          userStarredRepos:cachedUserStarredRepos
+        //      }
+        //  }
+         
+        if(cache.get('userRepos')&&cache.get('userStarredRepos')){
+             return{
+                 isLogin:true,
+                 userRepos:cache.get('userRepos'),
+                 userStarredRepos:cache.get('userStarredRepos')
+             }
+         }
+     }
+
+     //自己的仓库
+     const userRepos = await api.request({url:`/user/repos`},ctx.req, ctx.res);
+     //star的仓库
+     const userStarredRepos = await api.request({url:`/user/starred`},ctx.req, ctx.res);
      return {
-         data:result.data,
          isLogin:true,
          userRepos:userRepos.data,
          userStarredRepos:userStarredRepos.data
      }
  }
-export default connect(
+export default withRouter(connect(
     function mapState(state) {
         console.log(state)
         return {
             user:state.user
         }
     }
-)(withRouter(Index))
+)(Index))
