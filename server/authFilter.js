@@ -45,12 +45,43 @@ module.exports =(server)=>{
                 })
 
                 ctx.session.userInfo = userInfo.data;
-                ctx.redirect('/');
+                // 从哪个页面登录，回跳到哪个页面，默认到首页
+                ctx.redirect((ctx.session&&ctx.session.urlBeforeOAuth) || '/');
+                ctx.session.urlBeforeOAuth = '';
             }else{
                 const errorMsg = result.data&&result.data.error;
                 ctx.body = `request token failed ${errorMsg}`
             }
         }else {
+            await next();
+        }
+    })
+
+    /**
+     * 退出功能
+     */
+    server.use(async(ctx,next)=>{
+
+        const path = ctx.path;
+        const method = ctx.method;
+        if(path==='/logout'&&method==='POST'){
+            ctx.session = null;
+            ctx.body = 'logout success';
+        }else{
+            await next();
+        }
+    })
+    /**
+     *
+     */
+    server.use(async(ctx,next)=>{
+        const path = ctx.path;
+        const method = ctx.method;
+        if(path==='/prepare-auth'&&method==='GET'){
+            const {url} = ctx.query;
+            ctx.session.urlBeforeOAuth = url;
+            ctx.body = 'ready';
+        }else{
             await next();
         }
     })

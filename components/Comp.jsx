@@ -1,0 +1,1 @@
+export default ({color,children,style})=>(<div style={{color,...style}}>{children}</div>) 

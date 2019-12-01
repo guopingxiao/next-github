@@ -6,6 +6,8 @@ const Redis = require('ioredis')
 
 //auth授权
 const authFilter = require('./server/authFilter')
+//git api
+const api = require('./server/api');
 
 const RedisSessionStore = require('./server/session-store')
 
@@ -34,10 +36,12 @@ app.prepare().then(() => {
     //处理github oAuth登录
     authFilter(server);
 
+    api(server);
+
 
     // 打印session
     server.use(async (ctx,next)=>{
-        console.log('session is:',ctx.session)
+        // console.log('session is:',ctx.session)
         await next();
     })
 
@@ -67,6 +71,7 @@ app.prepare().then(() => {
     //koa中间键 核心方法
     server.use(async (ctx, next) => {
         // ctx.cookies.set('id','userid:xxxx')
+        ctx.req.session = ctx.session;
         await handle(ctx.req, ctx.res);
         ctx.respond = false
     })

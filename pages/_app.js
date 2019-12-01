@@ -7,18 +7,21 @@
  * 4.注入额外数据到页面里 (如 GraphQL 查询)
  */
 import App,{Container} from 'next/app';
-import React from 'react';
+import Router from 'next/router';
+import Link from 'next/Link';
 import  {Provider} from 'react-redux';
-import Layout from '../components/Layout';
-import MyContext from '../lib/MyContext';
 
-// import store from '../store/store';
+import axios from 'axios';
+
+import LayoutWrapper from '../components/Layout';
 import WithRedux from '../lib/with-redux';
+import PageLoading from '../components/PageLoading';
 import 'antd/dist/antd.css';
 
 class MyApp extends App{
     //每次页面切换都执行此方法
-    static async getInitialProps(ctx){
+    static async getInitialProps(ctx) {
+        console.log('---app init----');
         const {Component} = ctx;
         let pageProps={};
         if(Component.getInitialProps){
@@ -27,16 +30,57 @@ class MyApp extends App{
         return {pageProps};
     }
 
+    state={
+        loading:false
+    }
+
+    starLoading=()=>{
+        this.setState({
+            loading:true
+        })
+    }
+    stopLoading=()=>{
+        this.setState({
+            loading:false
+        })
+    }
+    componentDidMount(){
+        Router.events.on('routeChangeStart',this.starLoading);
+        Router.events.on('routeChangeComplete',this.stopLoading);
+        Router.events.on('routeChangeError',this.stopLoading);
+
+        axios.get('/github/search/repositories?q=react').then(res=>{
+            console.log(res);
+        },error=>{
+            console.error(error)
+        })
+    }
+    componentWillUnmount(){
+        Router.events.off('routeChangeStart',this.stopLoading);
+        Router.events.off('routeChangeComplete',this.stopLoading);
+        Router.events.off('routeChangeError',this.stopLoading);
+    }
+
+
     render(){
         const { Component,pageProps,reduxStore } = this.props;
         return (
             <Container>
-                <Layout>
-                    <Provider store={reduxStore}>
+                <Provider store={reduxStore}>
+                    {
+                        this.state.loading ? <PageLoading/> :null
+                    }
+                    <LayoutWrapper>
+                        <Link href="/">
+                            <a>index</a>
+                        </Link>
+                        <Link href="/detail">
+                            <a>detail</a>
+                        </Link>
                         <Component {...pageProps} />
-                    </Provider>
-                </Layout>
-            </Container>
+                    </LayoutWrapper>
+                </Provider>
+        </Container>
         )
     }
 }
