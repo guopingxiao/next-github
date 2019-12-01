@@ -33,7 +33,9 @@ class MyApp extends App{
             <Container>
                 <Layout>
                     <Provider store={reduxStore}>
-                        <Component {...pageProps} />
+                    <MyContext.Provider value="test">
+                        <Component {...pageProps}/>
+                    </MyContext.Provider>
                     </Provider>
                 </Layout>
             </Container>
