@@ -2,6 +2,7 @@ import {Layout} from 'antd';
 import Container from './Container';
 import LayoutHeader from './LayoutHeader';
 import Comp from './Comp';
+import { withRouter } from 'next/router'
 
 const { Content, Footer } = Layout;
 
@@ -10,8 +11,8 @@ function LayoutWrapper ({children}) {
       textAlign:'center'
   }
 
-  return (<Layout className="layout">
-    
+  return (
+    <Layout className="layout">
     
       <LayoutHeader />
       <Content>
@@ -23,24 +24,28 @@ function LayoutWrapper ({children}) {
       <Footer style={footerSty}>Develop By xiaoguoping@<a href="mailto:765166961@qq.com">765166961@qq.com</a></Footer>
     
       <style jsx global>
-      {
-          `
-          body{
-              padding:0;
-              margin:0;
-          }
-          #__next{
-              height:100%;
-          }
-          .ant-layout{
-              min-height:100%;
-          }
-          .ant-layout-header{
-              padding:0;
-          }
-          `
-      }
-  </style>
-</Layout>)
+        {
+            `
+            body{
+                padding:0;
+                margin:0;
+            }
+            #__next{
+                height:100%;
+            }
+            .ant-layout{
+                min-height:100%;
+            }
+            .ant-layout-header{
+                padding:0;
+            }
+            .ant-layout-content{
+              background-color:#fff;
+            }
+            `
+        }
+      </style>
+    </Layout>)
 }
-export default LayoutWrapper;
+
+export default withRouter(LayoutWrapper);

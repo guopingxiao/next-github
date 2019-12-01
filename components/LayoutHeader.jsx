@@ -2,25 +2,31 @@ import { useState,useCallback } from 'react';
 import {Layout,Icon,Input,Avatar ,Tooltip,Dropdown,Menu} from 'antd';
 import {connect} from 'react-redux';
 import { withRouter } from 'next/router';
-
+import Link from 'next/Link';
 import axios from 'axios';
 
 import Container from './Container';
 import getConfig from 'next/config';
-import {logout} from '../store/store';
+import { logout } from '../store/store';
 
 const {Header} = Layout;
 
 const {publicRuntimeConfig} = getConfig();
 function LayoutHeader({user,logout,router}) {
 
-    const [search,setSearch] = useState('');
+  const urlQuery = router.query&& router.query.query;
+  const [search, setSearch] = useState(urlQuery || '');
+  
     const handleSearchChange = useCallback((e)=>{
         setSearch(e.target.value)
-    },[search]);
-    const handleSearch= useCallback(()=>{
-
-    },[]);
+    }, [search]);
+  
+  
+    const handleOnSearch= useCallback(()=>{
+      //查询后路由跳转
+      router.push(`/search?query=${search}`)
+    }, [search]);
+  
     const handleLogout = useCallback(()=>{
         logout();
     },[logout]);//退出功能依赖logout props
@@ -65,16 +71,16 @@ function LayoutHeader({user,logout,router}) {
             <Container render={<div className="header-wrapper"/>}>
                 <div className="header-left">
                     <div className="logo">
-                        <Icon type="github" style={githubSty}/>
+                      <Link href={"/"}><Icon type="github" style={githubSty}/></Link>
                     </div>
                     <Input.Search
                         placeholder="搜索仓库"
                         enterButton="Search"
                         value={search}
                         onChange={handleSearchChange}
-                        onSearch={handleSearch}
+                        onSearch={handleOnSearch}
                     />
-                    <span>{search}</span>
+                    {/* <span>{search}</span> */}
                 </div>
                 <div className="header-right">
                     <div className="user">
