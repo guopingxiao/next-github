@@ -13,7 +13,7 @@ let cachedUserRepos,cachedUserStarredRepos;//缓存数据
 
 
 const cache = new LRU({
-    maxAge:1000*10,//缓存10分钟
+    maxAge:1000*60*10,//缓存10分钟
 })
 
 
@@ -191,7 +191,7 @@ function Index({ userRepos, userStarredRepos, user, router }) {
  }
 export default withRouter(connect(
     function mapState(state) {
-        console.log(state)
+        // console.log(state)
         return {
             user:state.user
         }
